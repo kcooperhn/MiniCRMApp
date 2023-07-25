@@ -17,6 +17,8 @@ import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.google.android.material.snackbar.Snackbar;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +27,7 @@ import hn.uth.minicrmapp.entity.Contacto;
 
 public class ClientesFragment extends Fragment {
 
-    private static final int PERMISSION_REQUEST_READ_CONTACT = 777;
+    private static final int PERMISSION_REQUEST_READ_CONTACT = 700;
     private FragmentClientesBinding binding;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -36,6 +38,21 @@ public class ClientesFragment extends Fragment {
         binding = FragmentClientesBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
 
+        binding.btnSearch.setOnClickListener(v -> {
+
+            if(binding.tilSearch.getEditText() != null && binding.tilSearch.getEditText().getText() != null && !binding.tilSearch.getEditText().toString().isEmpty()){
+                String busqueda = binding.tilSearch.getEditText().getText().toString();
+                if(busqueda.length() >= 4){
+                    List<Contacto> contactos = solicitarPermisoContactos(this.getContext());
+                    mostrarContacto(contactos, false, true);
+                }else{
+                    Snackbar.make(binding.getRoot(), "Debes de escribir un nombre de mínimo 4 caracteres", Snackbar.LENGTH_LONG).show();
+                }
+            }else{
+                Snackbar.make(binding.getRoot(), "Debes de escribir un nombre para realizar la búsqueda", Snackbar.LENGTH_LONG).show();
+            }
+
+        });
 
         return root;
     }
@@ -56,9 +73,12 @@ public class ClientesFragment extends Fragment {
     private List<Contacto> getContacts(Context context) {
         List<Contacto> contactos = new ArrayList<>();
 
+        String buscar = binding.tilSearch.getEditText().getText().toString();
+
+
         ContentResolver resolver = context.getContentResolver();
         Cursor cursor = resolver.query(ContactsContract.Contacts.CONTENT_URI,
-                null, null, null, ContactsContract.Contacts.DISPLAY_NAME + " DESC");
+                null, ContactsContract.Contacts.DISPLAY_NAME + " LIKE '%"+buscar+"%'", null, ContactsContract.Contacts.DISPLAY_NAME + " DESC");
 
         if(cursor.getCount() > 0){
             while (cursor.moveToNext()){
@@ -69,8 +89,6 @@ public class ClientesFragment extends Fragment {
                 String id = cursor.getString(idColumnIndex);
                 String name = cursor.getString(nameColumnIndex);
 
-                //binding.tilNombre.getEditText().setText(name);
-
                 if(Integer.parseInt(cursor.getString(phoneColumnIndex)) > 0){
                     //EL CONTACTO SI TIENE TELEFONO ALMACENADO
                     Cursor cursorPhone = resolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
@@ -79,10 +97,6 @@ public class ClientesFragment extends Fragment {
                     while (cursorPhone.moveToNext()){
                         int phoneCommonColumIndex = cursorPhone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
                         String phone = cursorPhone.getString(phoneCommonColumIndex);
-
-
-                        //binding.tilTelefono.getEditText().setText(phone);
-
 
                         Contacto nuevo = new Contacto();
                         nuevo.setName(name);
@@ -93,7 +107,6 @@ public class ClientesFragment extends Fragment {
                     }
                     cursorPhone.close();
                 }
-
             }
             cursor.close();
         }
@@ -104,10 +117,37 @@ public class ClientesFragment extends Fragment {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         //AQUI VA A ENTRAR CUANDO EL USUARIO INDIQUE SI ME OTORGÓ O NO EL PERMISO
+        if(requestCode == PERMISSION_REQUEST_READ_CONTACT){
+            if(grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                //PERMISO EN TIEMPO DE EJECUCIÓN CONCEDIDO, PUEDO USAR LA FUNCIONALIDAD
+                List<Contacto> contactos = getContacts(this.getContext());
+                mostrarContacto(contactos, true, true);
 
+            }else{
+                //PERMISO EN TIEMPO DE EJECUCIÓN NO OTORGADO, MOSTRANDO ALTERNATIVA
+                Snackbar.make(binding.getRoot(), "No se pueden buscar contactos", Snackbar.LENGTH_LONG).show();
+                binding.tilSearch.getEditText().setText("");
+                binding.tilSearch.getEditText().setEnabled(Boolean.FALSE);
+            }
+        }
 
 
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    private void mostrarContacto(List<Contacto> contactos, boolean mostrarMensajeExito, boolean MostrarMensajeError) {
+        if(contactos.isEmpty()){
+            if(MostrarMensajeError){
+                Snackbar.make(binding.getRoot(), "No hay coincidencias en la búsqueda", Snackbar.LENGTH_LONG).show();
+            }
+        }else{
+            binding.tilNombre.getEditText().setText(contactos.get(0).getName());
+            binding.tilTelefono.getEditText().setText(contactos.get(0).getPhone());
+            Snackbar.make(binding.getRoot(), contactos.size() + " Contactos encontrados", Snackbar.LENGTH_LONG).show();
+            if(mostrarMensajeExito){
+                Snackbar.make(binding.getRoot(), "Contacto cargado", Snackbar.LENGTH_LONG).show();
+            }
+        }
     }
 
     @Override
