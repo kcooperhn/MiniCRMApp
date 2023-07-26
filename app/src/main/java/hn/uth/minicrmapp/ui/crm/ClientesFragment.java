@@ -22,6 +22,7 @@ import com.google.android.material.snackbar.Snackbar;
 import java.util.ArrayList;
 import java.util.List;
 
+import hn.uth.minicrmapp.database.Cliente;
 import hn.uth.minicrmapp.databinding.FragmentClientesBinding;
 import hn.uth.minicrmapp.entity.Contacto;
 
@@ -32,7 +33,7 @@ public class ClientesFragment extends Fragment {
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        ClientesViewModel dashboardViewModel =
+        ClientesViewModel clientesViewModel =
                 new ViewModelProvider(this).get(ClientesViewModel.class);
 
         binding = FragmentClientesBinding.inflate(inflater, container, false);
@@ -54,7 +55,25 @@ public class ClientesFragment extends Fragment {
 
         });
 
+        binding.btnGuardar.setOnClickListener(v -> {
+
+            Cliente nuevo = new Cliente(binding.tilNombre.getEditText().getText().toString(),
+                    binding.tilTelefono.getEditText().getText().toString(),
+                    binding.tilCorreo.getEditText().getText().toString());
+            clientesViewModel.insert(nuevo);
+            Snackbar.make(binding.getRoot(), "Cliente agregado correctamente", Snackbar.LENGTH_LONG).show();
+            limpiarCampos();
+        });
+
         return root;
+    }
+
+    private void limpiarCampos() {
+        binding.tilNombre.getEditText().setText("");
+        binding.tilTelefono.getEditText().setText("");
+        binding.tilCorreo.getEditText().setText("");
+        binding.tilSearch.getEditText().setText("");
+
     }
 
 
@@ -63,7 +82,7 @@ public class ClientesFragment extends Fragment {
         if(ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED){
             //ENTRA AQUI SI NO ME HAN DADO EL PERMISO, Y DEBO DE SOLICITARLO
             ActivityCompat.requestPermissions(this.getActivity(), new String[]{Manifest.permission.READ_CONTACTS}, PERMISSION_REQUEST_READ_CONTACT);
-            return new ArrayList<>();
+            return null;
         }else{
             //ENTRA AQUI SI EL USUARIO YA ME OTORGÓ EL PERMISO ANTES, PUEDO HACER USO DE LA LECTURA DE CONTACTOS
             return getContacts(context);
@@ -78,10 +97,10 @@ public class ClientesFragment extends Fragment {
 
         ContentResolver resolver = context.getContentResolver();
         Cursor cursor = resolver.query(ContactsContract.Contacts.CONTENT_URI,
-                null, ContactsContract.Contacts.DISPLAY_NAME + " LIKE '%"+buscar+"%'", null, ContactsContract.Contacts.DISPLAY_NAME + " DESC");
-
+                null, ContactsContract.Contacts.DISPLAY_NAME + " LIKE '"+buscar+"%'", null, ContactsContract.Contacts.DISPLAY_NAME + " DESC");
+        boolean continuar = true;
         if(cursor.getCount() > 0){
-            while (cursor.moveToNext()){
+            while (continuar && cursor.moveToNext()){
                 int idColumnIndex = Math.max(cursor.getColumnIndex(ContactsContract.Contacts._ID), 0);
                 int nameColumnIndex = Math.max(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME), 0);
                 int phoneColumnIndex = Math.max(cursor.getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER), 0);//ME DICE SI TIENE O NO UN TELEFONO GUARDADO
@@ -94,17 +113,45 @@ public class ClientesFragment extends Fragment {
                     Cursor cursorPhone = resolver.query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
                             null, ContactsContract.CommonDataKinds.Phone.CONTACT_ID + "=?", new String[]{id}, null);
 
-                    while (cursorPhone.moveToNext()){
+                    Cursor cursorCorreo = resolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,
+                                    null, ContactsContract.CommonDataKinds.Email.CONTACT_ID + "=?", new String[]{id}, null);
+
+
+                    while (continuar && cursorPhone.moveToNext()){
+                        cursorCorreo.moveToNext();
                         int phoneCommonColumIndex = cursorPhone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER);
                         String phone = cursorPhone.getString(phoneCommonColumIndex);
+
+                        String correo = "";
+                        if(cursorCorreo.getCount()>0){
+                            int emailCommonColumIndex = cursorCorreo.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA1);
+                            correo = cursorCorreo.getString(emailCommonColumIndex);
+                        }
 
                         Contacto nuevo = new Contacto();
                         nuevo.setName(name);
                         nuevo.setPhone(phone);
+                        nuevo.setEmail(correo); //ME FALTA BUSCAR ESTE
+
+                        contactos.add(nuevo);
+
+                        continuar = false;
+                    }
+
+                    //Cursor cursorCorreo = resolver.query(ContactsContract.CommonDataKinds.Email.CONTENT_URI,
+                    //        null, ContactsContract.CommonDataKinds.Email.CONTACT_ID + "=?", new String[]{id}, null);
+
+                    /*while (cursorCorreo.moveToNext()){
+                        int emailCommonColumIndex = cursorCorreo.getColumnIndex(ContactsContract.CommonDataKinds.Email.DATA1);
+                        String correo = cursorCorreo.getString(emailCommonColumIndex);
+
+                        Contacto nuevo = new Contacto();
+                        nuevo.setName(name);
+                        nuevo.setPhone(correo);
                         //nuevo.setEmail(""); ME FALTA BUSCAR ESTE
 
                         contactos.add(nuevo);
-                    }
+                    }*/
                     cursorPhone.close();
                 }
             }
@@ -136,13 +183,16 @@ public class ClientesFragment extends Fragment {
     }
 
     private void mostrarContacto(List<Contacto> contactos, boolean mostrarMensajeExito, boolean MostrarMensajeError) {
-        if(contactos.isEmpty()){
+        if (contactos == null) {
+            Snackbar.make(binding.getRoot(), "No es posible acceder a los contactos", Snackbar.LENGTH_LONG).show();
+        }else if(contactos.isEmpty()){
             if(MostrarMensajeError){
                 Snackbar.make(binding.getRoot(), "No hay coincidencias en la búsqueda", Snackbar.LENGTH_LONG).show();
             }
         }else{
             binding.tilNombre.getEditText().setText(contactos.get(0).getName());
             binding.tilTelefono.getEditText().setText(contactos.get(0).getPhone());
+            binding.tilCorreo.getEditText().setText(contactos.get(0).getEmail());
             Snackbar.make(binding.getRoot(), contactos.size() + " Contactos encontrados", Snackbar.LENGTH_LONG).show();
             if(mostrarMensajeExito){
                 Snackbar.make(binding.getRoot(), "Contacto cargado", Snackbar.LENGTH_LONG).show();

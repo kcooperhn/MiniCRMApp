@@ -1,19 +1,34 @@
 package hn.uth.minicrmapp.ui.crm;
 
+import android.app.Application;
+
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
-import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
 
-public class ClientesViewModel extends ViewModel {
+import java.util.List;
 
-    private final MutableLiveData<String> mText;
+import hn.uth.minicrmapp.database.Cliente;
+import hn.uth.minicrmapp.database.ClientesRepository;
 
-    public ClientesViewModel() {
-        mText = new MutableLiveData<>();
-        mText.setValue("This is dashboard fragment");
+public class ClientesViewModel extends AndroidViewModel {
+
+    private ClientesRepository repository;
+
+    public ClientesViewModel(@NonNull Application app) {
+        super(app);
+        this.repository = new ClientesRepository(app);
+    }
+    public ClientesRepository getRepository() {
+        return repository;
     }
 
-    public LiveData<String> getText() {
-        return mText;
+    public void insert(Cliente nuevo){
+        repository.insert(nuevo);
     }
+
+    public void update(Cliente actualizar){
+        repository.update(actualizar);
+    }
+
 }

@@ -14,6 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.android.material.snackbar.Snackbar;
 
+import java.util.ArrayList;
+
 import hn.uth.minicrmapp.OnItemClickListener;
 import hn.uth.minicrmapp.R;
 import hn.uth.minicrmapp.database.Cliente;
@@ -26,6 +28,7 @@ public class HomeFragment extends Fragment implements OnItemClickListener<Client
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
+        adaptador = new ClientesAdapter(new ArrayList<>(), this);
         HomeViewModel homeViewModel =
                 new ViewModelProvider(this).get(HomeViewModel.class);
 
