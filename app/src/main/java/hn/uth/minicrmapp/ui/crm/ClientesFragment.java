@@ -16,12 +16,15 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.Navigation;
 
 import com.google.android.material.snackbar.Snackbar;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import hn.uth.minicrmapp.R;
 import hn.uth.minicrmapp.database.Cliente;
 import hn.uth.minicrmapp.databinding.FragmentClientesBinding;
 import hn.uth.minicrmapp.entity.Contacto;
@@ -30,14 +33,20 @@ public class ClientesFragment extends Fragment {
 
     private static final int PERMISSION_REQUEST_READ_CONTACT = 700;
     private FragmentClientesBinding binding;
+    private Cliente clienteEditar;
 
-    public View onCreateView(@NonNull LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
-        ClientesViewModel clientesViewModel =
-                new ViewModelProvider(this).get(ClientesViewModel.class);
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        ClientesViewModel clientesViewModel = new ViewModelProvider(this).get(ClientesViewModel.class);
 
         binding = FragmentClientesBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+
+        try{
+            clienteEditar = (Cliente) getArguments().getSerializable("cliente");
+        }catch (Exception e){
+            clienteEditar = null;
+        }
+        mostrarClienteEditar();
 
         binding.btnSearch.setOnClickListener(v -> {
 
@@ -60,12 +69,45 @@ public class ClientesFragment extends Fragment {
             Cliente nuevo = new Cliente(binding.tilNombre.getEditText().getText().toString(),
                     binding.tilTelefono.getEditText().getText().toString(),
                     binding.tilCorreo.getEditText().getText().toString());
-            clientesViewModel.insert(nuevo);
-            Snackbar.make(binding.getRoot(), "Cliente agregado correctamente", Snackbar.LENGTH_LONG).show();
+            String mensaje = "Cliente agregado correctamente";
+            if(clienteEditar == null){
+                clientesViewModel.insert(nuevo);
+            }else{
+                nuevo.setIdCliente(clienteEditar.getIdCliente());
+                clientesViewModel.update(nuevo);
+                mensaje = "Cliente modificado correctamente";
+            }
+
+            Snackbar.make(binding.getRoot(), mensaje, Snackbar.LENGTH_LONG).show();
             limpiarCampos();
+            NavController navController = Navigation.findNavController(this.getActivity(), R.id.nav_host_fragment_activity_main);
+            navController.navigate(R.id.navigation_home);
         });
 
+        binding.btnEliminar.setOnClickListener(v -> {
+            clientesViewModel.delete(clienteEditar);
+            Snackbar.make(binding.getRoot(), "Cliente eliminado correctamente", Snackbar.LENGTH_LONG).show();
+            NavController navController = Navigation.findNavController(this.getActivity(), R.id.nav_host_fragment_activity_main);
+            navController.navigate(R.id.navigation_home);
+        } );
+
         return root;
+    }
+
+    private void mostrarClienteEditar() {
+        if(clienteEditar == null){
+            //ES UNA CREACIÓN, MOSTRAR BUSQUEDA
+            binding.cvBuscar.setVisibility(View.VISIBLE);
+            binding.btnGuardar.setText(R.string.btn_crear_cliente);
+        }else{
+            //ES UNA EDICIO, OCULTAR BUSQUEDA
+            binding.cvBuscar.setVisibility(View.GONE);
+            binding.tilNombre.getEditText().setText(clienteEditar.getNombre());
+            binding.tilTelefono.getEditText().setText(clienteEditar.getTelefono());
+            binding.tilCorreo.getEditText().setText(clienteEditar.getCorreo());
+            binding.btnGuardar.setText(R.string.btn_modificar_cliente);
+            binding.btnEliminar.setVisibility(View.VISIBLE);
+        }
     }
 
     private void limpiarCampos() {
@@ -73,9 +115,7 @@ public class ClientesFragment extends Fragment {
         binding.tilTelefono.getEditText().setText("");
         binding.tilCorreo.getEditText().setText("");
         binding.tilSearch.getEditText().setText("");
-
     }
-
 
     private List<Contacto> solicitarPermisoContactos(Context context){
         //PREGUNTANDO SI YA TENGO UN DETERMINADO PERMISO

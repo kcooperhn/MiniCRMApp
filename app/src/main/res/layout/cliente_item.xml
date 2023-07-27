@@ -22,7 +22,7 @@
             android:layout_height="match_parent">
 
             <ImageView
-                android:id="@+id/imageView"
+                android:id="@+id/imgContact"
                 android:layout_width="60dp"
                 android:layout_height="60dp"
                 android:layout_marginStart="6dp"
@@ -41,8 +41,8 @@
                 android:layout_marginEnd="4dp"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/imageView"
-                app:layout_constraintTop_toTopOf="@+id/imageView"
+                app:layout_constraintStart_toEndOf="@+id/imgContact"
+                app:layout_constraintTop_toTopOf="@+id/imgContact"
                 tools:text="Pedro Perez" />
 
             <TextView
@@ -50,23 +50,23 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
-                app:layout_constraintBottom_toBottomOf="@+id/imageView2"
-                app:layout_constraintStart_toEndOf="@+id/imageView2"
-                app:layout_constraintTop_toTopOf="@+id/imageView2"
+                app:layout_constraintBottom_toBottomOf="@+id/imgPhone"
+                app:layout_constraintStart_toEndOf="@+id/imgPhone"
+                app:layout_constraintTop_toTopOf="@+id/imgPhone"
                 tools:text="9999-8877" />
 
             <ImageView
-                android:id="@+id/imageView2"
+                android:id="@+id/imgPhone"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
                 android:layout_marginTop="8dp"
-                app:layout_constraintStart_toEndOf="@+id/imageView"
+                app:layout_constraintStart_toEndOf="@+id/imgContact"
                 app:layout_constraintTop_toBottomOf="@+id/tvNombre"
                 app:srcCompat="@drawable/baseline_phone_24" />
 
             <ImageView
-                android:id="@+id/imageView3"
+                android:id="@+id/imgEmail"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -81,10 +81,10 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="4dp"
                 android:layout_marginEnd="4dp"
-                app:layout_constraintBottom_toBottomOf="@+id/imageView3"
+                app:layout_constraintBottom_toBottomOf="@+id/imgEmail"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toEndOf="@+id/imageView3"
-                app:layout_constraintTop_toTopOf="@+id/imageView3"
+                app:layout_constraintStart_toEndOf="@+id/imgEmail"
+                app:layout_constraintTop_toTopOf="@+id/imgEmail"
                 tools:text="correodeprueba@gmail.com" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.cardview.widget.CardView>

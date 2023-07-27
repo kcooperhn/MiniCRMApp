@@ -31,4 +31,8 @@ public class ClientesViewModel extends AndroidViewModel {
         repository.update(actualizar);
     }
 
+    public void delete(Cliente eliminar){
+        repository.delete(eliminar);
+    }
+
 }

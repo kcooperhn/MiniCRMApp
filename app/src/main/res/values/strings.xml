@@ -7,4 +7,6 @@
     <string name="lbl_hint_nombre_completo">Nombre Completo</string>
     <string name="lbl_hint_telefono">Número de Teléfono</string>
     <string name="lbl_hint_correo">Correo Electrónico</string>
+    <string name="btn_modificar_cliente">Guardar Cliente</string>
+    <string name="btn_crear_cliente">Crear Cliente</string>
 </resources>

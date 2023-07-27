@@ -1,6 +1,7 @@
 package hn.uth.minicrmapp.ui.home;
 
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
@@ -35,6 +36,16 @@ public class ClientesAdapter extends RecyclerView.Adapter<ClientesAdapter.ViewHo
         holder.binding.tvNombre.setText(clienteMostrar.getNombre());
         holder.binding.tvTelefono.setText(clienteMostrar.getTelefono());
         holder.binding.tvCorreo.setText(clienteMostrar.getCorreo());
+        if(clienteMostrar.getCorreo() != null && !"".equals(clienteMostrar.getCorreo())){
+            holder.binding.imgEmail.setVisibility(View.VISIBLE);
+        }else{
+            holder.binding.imgEmail.setVisibility(View.GONE);
+        }
+        if(!"".equals(clienteMostrar.getTelefono())){
+            holder.binding.imgPhone.setVisibility(View.VISIBLE);
+        }else{
+            holder.binding.imgPhone.setVisibility(View.GONE);
+        }
         holder.setOnClickListener(clienteMostrar, manejadorEventoClick);
     }
 
